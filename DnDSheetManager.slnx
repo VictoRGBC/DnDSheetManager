@@ -1,0 +1,6 @@
+<Solution>
+  <Project Path="DnDSheetManager.API/API.csproj" />
+  <Project Path="DnDSheetManager.Application/Application.csproj" />
+  <Project Path="DnDSheetManager.Domain/Domain.csproj" />
+  <Project Path="DnDSheetManager.Infrastructure/Infrastructure.csproj" />
+</Solution>
