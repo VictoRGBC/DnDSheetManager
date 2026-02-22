@@ -1,4 +1,4 @@
-using Infrastructure.Data;
+using DnDSheetManager.Infrastructure;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
