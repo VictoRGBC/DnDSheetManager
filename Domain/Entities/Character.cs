@@ -23,6 +23,9 @@
         public int Wisdom { get; set; }
         public int Charisma { get; set; }
 
+        // Navegação para o Inventário
+        public ICollection<CharacterItem> Inventory { get; set; } = new List<CharacterItem>();
+
         // Método simples para exemplificar comportamento na entidade
         public void TakeDamage(int damageAmount)
         {
