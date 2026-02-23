@@ -1,4 +1,4 @@
-namespace DnDSheetManager.API
+namespace API
 {
     public class WeatherForecast
     {

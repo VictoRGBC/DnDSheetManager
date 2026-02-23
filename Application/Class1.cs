@@ -1,4 +1,4 @@
-﻿namespace DnDSheetManager.Application
+﻿namespace Application
 {
     public class Class1
     {

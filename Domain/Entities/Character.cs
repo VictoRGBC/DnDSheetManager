@@ -1,22 +1,21 @@
-﻿
-namespace Domain.Entities
+﻿namespace DnDSheetManager.Domain.Entities
 {
     public class Character
     {
-        // Identificador único (PK)
+        // Identificador único (Primary Key no banco)
         public int Id { get; set; }
 
-        // Informações básicas
+        // Informações Básicas
         public string Name { get; set; } = string.Empty;
         public string Race { get; set; } = string.Empty;
         public string ClassName { get; set; } = string.Empty;
         public int Level { get; set; } = 1;
 
-        // Pontos de vida (PV)
+        // Pontos de Vida (HP)
         public int MaxHitPoints { get; set; }
         public int CurrentHitPoints { get; set; }
 
-        // Atributos base de D&D
+        // Atributos Base de D&D
         public int Strength { get; set; }
         public int Dexterity { get; set; }
         public int Constitution { get; set; }
@@ -24,7 +23,7 @@ namespace Domain.Entities
         public int Wisdom { get; set; }
         public int Charisma { get; set; }
 
-        // Método simples para exemplificar o comportamento na entidade
+        // Método simples para exemplificar comportamento na entidade
         public void TakeDamage(int damageAmount)
         {
             CurrentHitPoints -= damageAmount;
