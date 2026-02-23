@@ -1,31 +1,38 @@
 using DnDSheetManager.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
+using Scalar.AspNetCore;
+using DnDSheetManager.Domain.Interfaces;
+using DnDSheetManager.Infrastructure.Repositories;
+using DnDSheetManager.Application.Services;
+
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Pegando a string de conexão do appsettings.json
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 
-// Registrando o DbContext e configurando o Pomelo MySQL
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString)));
 
+
+builder.Services.AddScoped<ICharacterRepository, CharacterRepository>();
+builder.Services.AddScoped<ICharacterService, CharacterService>();
+
 builder.Services.AddControllers();
-// Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
+
 builder.Services.AddOpenApi();
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
+app.MapOpenApi();
+
+app.MapScalarApiReference(options =>
 {
-    app.MapOpenApi();
-}
+    options.Title = "DnD Sheet Manager API";
+    options.Theme = ScalarTheme.BluePlanet;
+});
 
 app.UseHttpsRedirection();
-
 app.UseAuthorization();
-
 app.MapControllers();
 
 app.Run();
