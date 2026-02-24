@@ -8,5 +8,6 @@ namespace DnDSheetManager.Domain.Interfaces
         Task<Character> AddAsync(Character character);
         Task UpdateAsync(Character character);
         Task DeleteAsync(int id);
+        Task<Character?> GetCharacterWithInventoryAsync(int id);
     }
 }

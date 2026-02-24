@@ -1,6 +1,8 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using DnDSheetManager.Domain.Entities;
+﻿using DnDSheetManager.API.DTOs;
 using DnDSheetManager.Application.Services;
+using DnDSheetManager.Domain.Entities;
+using Microsoft.AspNetCore.Mvc;
+using DnDSheetManager.API.DTOs;
 
 namespace DnDSheetManager.API.Controllers
 {
@@ -15,6 +17,7 @@ namespace DnDSheetManager.API.Controllers
             _characterService = characterService;
         }
 
+        // Post: api/characters (Cria uma nova ficha)
         [HttpPost]
         public async Task<ActionResult<Character>> CreateCharacter(Character character)
         {
@@ -22,12 +25,53 @@ namespace DnDSheetManager.API.Controllers
             return CreatedAtAction(nameof(GetCharacter), new { id = createdCharacter.Id }, createdCharacter);
         }
 
+        // GET: api/characters/{id}
         [HttpGet("{id}")]
-        public async Task<ActionResult<Character>> GetCharacter(int id)
+        public async Task<ActionResult<CharacterResponseDto>> GetCharacter(int id)
         {
-            var character = await _characterService.GetCharacterAsync(id);
-            if (character == null) return NotFound();
-            return Ok(character);
+            // Busca o personagem com os itens incluídos
+            var character = await _characterService.GetCharacterWithInventoryAsync(id);
+
+            if (character == null) return NotFound("Personagem não encontrado.");
+
+            // Mapeamento manual de Entidade para DTO
+            var responseDto = new CharacterResponseDto
+            {
+                Id = character.Id,
+                Name = character.Name,
+                Race = character.Race,
+                ClassName = character.ClassName,
+                Level = character.Level,
+                CurrentHitPoints = character.CurrentHitPoints,
+                MaxHitPoints = character.MaxHitPoints,
+
+                // Atributos Base
+                Strength = character.Strength,
+                Dexterity = character.Dexterity,
+                Constitution = character.Constitution,
+                Intelligence = character.Intelligence,
+                Wisdom = character.Wisdom,
+                Charisma = character.Charisma,
+
+                // Aplicando a regra de negócio do Domínio!
+                StrengthModifier = character.GetModifier(character.Strength),
+                DexterityModifier = character.GetModifier(character.Dexterity),
+                ConstitutionModifier = character.GetModifier(character.Constitution),
+                IntelligenceModifier = character.GetModifier(character.Intelligence),
+                WisdomModifier = character.GetModifier(character.Wisdom),
+                CharismaModifier = character.GetModifier(character.Charisma),
+
+                // Mapeia o inventário
+                Inventory = character.Inventory.Select(i => new InventoryItemDto
+                {
+                    ItemId = i.ItemId,
+                    Name = i.Item?.Name ?? "Item Desconhecido",
+                    Quantity = i.Quantity,
+                    TotalWeight = (i.Item?.Weight ?? 0) * i.Quantity
+                }).ToList()
+            };
+
+            return Ok(responseDto);
         }
 
         // PUT: api/characters/{id} (Atualiza a ficha, ex: tomou dano, subiu de nível)
@@ -48,6 +92,18 @@ namespace DnDSheetManager.API.Controllers
             if (!deleted) return NotFound();
 
             return NoContent();
+        }
+
+        // POST: api/characters/{id}/inventory
+        [HttpPost("{id}/inventory")]
+        public async Task<IActionResult> AddItemToInventory(int id, [FromBody] AddItemDto dto)
+        {
+            var success = await _characterService.AddItemToInventoryAsync(id, dto.ItemId, dto.Quantity);
+
+            if (!success)
+                return BadRequest("Personagem não encontrado ou erro ao adicionar o item.");
+
+            return Ok("Item adicionado ao inventário com sucesso!");
         }
     }
 }

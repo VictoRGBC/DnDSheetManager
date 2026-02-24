@@ -40,5 +40,11 @@
             if (CurrentHitPoints > MaxHitPoints)
                 CurrentHitPoints = MaxHitPoints;
         }
+
+        // Método encapsulado com a regra oficial de D&D para calcular modificadores
+        public int GetModifier(int attributeScore)
+        {
+            return (int)Math.Floor((attributeScore - 10) / 2.0);
+        }
     }
 }

@@ -38,5 +38,13 @@ namespace DnDSheetManager.Infrastructure.Repositories
                 await _context.SaveChangesAsync();
             }
         }
+
+        public async Task<Character?> GetCharacterWithInventoryAsync(int id)
+        {
+            return await _context.Characters
+                .Include(c => c.Inventory)
+                .ThenInclude(i => i.Item)
+                .FirstOrDefaultAsync(c => c.Id == id);
+        }
     }
 }
