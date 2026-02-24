@@ -15,7 +15,7 @@ namespace DnDSheetManager.API.Controllers
         {
             _context = context;
         }
-
+        // POST: api/items (Cria um novo item)
         [HttpPost]
         public async Task<ActionResult<Item>> CreateItem(Item item)
         {
@@ -24,6 +24,7 @@ namespace DnDSheetManager.API.Controllers
             return CreatedAtAction(nameof(GetItem), new { id = item.Id }, item);
         }
 
+        // GET: api/items/{id} (Obtém um item específico por ID)
         [HttpGet("{id}")]
         public async Task<ActionResult<Item>> GetItem(int id)
         {
@@ -32,12 +33,14 @@ namespace DnDSheetManager.API.Controllers
             return item;
         }
 
+        // GET: api/items (Obtém todos os itens)
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Item>>> GetAllItems()
         {
             return await _context.Items.ToListAsync();
         }
 
+        // PUT: api/items/{id} (Atualiza um item existente)
         [HttpPut("{id}")]
         public async Task<IActionResult> UpdateItem(int id, Item item)
         {
@@ -67,6 +70,7 @@ namespace DnDSheetManager.API.Controllers
             return NoContent();
         }
 
+        // DELETE: api/items/{id} (Exclui um item)
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteItem(int id)
         {

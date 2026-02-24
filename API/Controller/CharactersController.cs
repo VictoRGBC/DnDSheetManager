@@ -2,7 +2,6 @@
 using DnDSheetManager.Application.Services;
 using DnDSheetManager.Domain.Entities;
 using Microsoft.AspNetCore.Mvc;
-using DnDSheetManager.API.DTOs;
 
 namespace DnDSheetManager.API.Controllers
 {
@@ -104,6 +103,30 @@ namespace DnDSheetManager.API.Controllers
                 return BadRequest("Personagem não encontrado ou erro ao adicionar o item.");
 
             return Ok("Item adicionado ao inventário com sucesso!");
+        }
+
+        // PATCH: api/characters/{id}/take-damage
+        [HttpPatch("{id}/take-damage")]
+        public async Task<IActionResult> TakeDamage(int id, [FromBody] CharacterActionDto dto)
+        {
+            if (dto.Amount <= 0) return BadRequest("O valor do dano deve ser maior que zero.");
+
+            var success = await _characterService.TakeDamageAsync(id, dto.Amount);
+            if (!success) return NotFound("Personagem não encontrado.");
+
+            return Ok($"Dano de {dto.Amount} aplicado com sucesso.");
+        }
+
+        // PATCH: api/characters/{id}/heal
+        [HttpPatch("{id}/heal")]
+        public async Task<IActionResult> Heal(int id, [FromBody] CharacterActionDto dto)
+        {
+            if (dto.Amount <= 0) return BadRequest("O valor da cura deve ser maior que zero.");
+
+            var success = await _characterService.HealAsync(id, dto.Amount);
+            if (!success) return NotFound("Personagem não encontrado.");
+
+            return Ok($"Cura de {dto.Amount} aplicada com sucesso.");
         }
     }
 }
