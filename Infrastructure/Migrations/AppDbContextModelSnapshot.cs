@@ -29,9 +29,6 @@ namespace Infrastructure.Migrations
 
                     MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<int>("AttackBonus")
-                        .HasColumnType("int");
-
                     b.Property<int>("CharacterId")
                         .HasColumnType("int");
 
@@ -43,11 +40,16 @@ namespace Infrastructure.Migrations
                         .IsRequired()
                         .HasColumnType("longtext");
 
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasColumnType("longtext");
+                    b.Property<bool>("IsFinesse")
+                        .HasColumnType("tinyint(1)");
 
-                    b.Property<string>("Properties")
+                    b.Property<bool>("IsProficient")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<bool>("IsRanged")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<string>("Name")
                         .IsRequired()
                         .HasColumnType("longtext");
 
@@ -66,12 +68,45 @@ namespace Infrastructure.Migrations
 
                     MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<string>("Alignment")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("Background")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("Bonds")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
                     b.Property<string>("ClassName")
                         .IsRequired()
                         .HasColumnType("longtext");
 
                     b.Property<int>("CurrentHitPoints")
                         .HasColumnType("int");
+
+                    b.Property<int>("ExperiencePoints")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Flaws")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<bool>("HasInspiration")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<string>("HitDice")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<int>("HitDiceUsed")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Ideals")
+                        .IsRequired()
+                        .HasColumnType("longtext");
 
                     b.Property<int>("Level")
                         .HasColumnType("int");
@@ -83,9 +118,16 @@ namespace Infrastructure.Migrations
                         .IsRequired()
                         .HasColumnType("longtext");
 
+                    b.Property<string>("PersonalityTraits")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
                     b.Property<string>("Species")
                         .IsRequired()
                         .HasColumnType("longtext");
+
+                    b.Property<int>("Speed")
+                        .HasColumnType("int");
 
                     b.HasKey("Id");
 
@@ -138,6 +180,63 @@ namespace Infrastructure.Migrations
                     b.ToTable("CharacterResources");
                 });
 
+            modelBuilder.Entity("DnDSheetManager.Domain.Entities.CharacterSpell", b =>
+                {
+                    b.Property<int>("CharacterId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("SpellId")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("IsPrepared")
+                        .HasColumnType("tinyint(1)");
+
+                    b.HasKey("CharacterId", "SpellId");
+
+                    b.HasIndex("SpellId");
+
+                    b.ToTable("CharacterSpells");
+                });
+
+            modelBuilder.Entity("DnDSheetManager.Domain.Entities.Feature", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("CharacterId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("RestType")
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("Source")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<int?>("UsesPerRest")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("UsesRemaining")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CharacterId");
+
+                    b.ToTable("Features");
+                });
+
             modelBuilder.Entity("DnDSheetManager.Domain.Entities.Item", b =>
                 {
                     b.Property<int>("Id")
@@ -163,6 +262,50 @@ namespace Infrastructure.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Items");
+                });
+
+            modelBuilder.Entity("DnDSheetManager.Domain.Entities.Spell", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("CastingTime")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("Components")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("Duration")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<int>("Level")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("Range")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("School")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Spells");
                 });
 
             modelBuilder.Entity("DnDSheetManager.Domain.Entities.Attack", b =>
@@ -209,6 +352,37 @@ namespace Infrastructure.Migrations
                                 .HasForeignKey("CharacterId");
                         });
 
+                    b.OwnsOne("DnDSheetManager.Domain.ValueObjects.ArmorClass", "AC", b1 =>
+                        {
+                            b1.Property<int>("CharacterId")
+                                .HasColumnType("int");
+
+                            b1.Property<int>("ArmorBonus")
+                                .HasColumnType("int");
+
+                            b1.Property<int>("Base")
+                                .HasColumnType("int");
+
+                            b1.Property<int?>("DexterityModifierCap")
+                                .HasColumnType("int");
+
+                            b1.Property<int>("MagicBonus")
+                                .HasColumnType("int");
+
+                            b1.Property<int>("MiscBonus")
+                                .HasColumnType("int");
+
+                            b1.Property<int>("ShieldBonus")
+                                .HasColumnType("int");
+
+                            b1.HasKey("CharacterId");
+
+                            b1.ToTable("Characters");
+
+                            b1.WithOwner()
+                                .HasForeignKey("CharacterId");
+                        });
+
                     b.OwnsOne("DnDSheetManager.Domain.ValueObjects.Coins", "Wealth", b1 =>
                         {
                             b1.Property<int>("CharacterId")
@@ -237,63 +411,57 @@ namespace Infrastructure.Migrations
                                 .HasForeignKey("CharacterId");
                         });
 
-                    b.OwnsOne("DnDSheetManager.Domain.ValueObjects.Skills", "Skills", b1 =>
+                    b.OwnsOne("DnDSheetManager.Domain.ValueObjects.Conditions", "Conditions", b1 =>
                         {
                             b1.Property<int>("CharacterId")
                                 .HasColumnType("int");
 
-                            b1.Property<bool>("Acrobatics")
+                            b1.Property<bool>("Blinded")
                                 .HasColumnType("tinyint(1)");
 
-                            b1.Property<bool>("AnimalHandling")
+                            b1.Property<bool>("Charmed")
                                 .HasColumnType("tinyint(1)");
 
-                            b1.Property<bool>("Arcana")
+                            b1.Property<bool>("Deafened")
                                 .HasColumnType("tinyint(1)");
 
-                            b1.Property<bool>("Athletics")
+                            b1.Property<bool>("Exhaustion")
                                 .HasColumnType("tinyint(1)");
 
-                            b1.Property<bool>("Deception")
+                            b1.Property<int>("ExhaustionLevel")
+                                .HasColumnType("int");
+
+                            b1.Property<bool>("Frightened")
                                 .HasColumnType("tinyint(1)");
 
-                            b1.Property<bool>("History")
+                            b1.Property<bool>("Grappled")
                                 .HasColumnType("tinyint(1)");
 
-                            b1.Property<bool>("Insight")
+                            b1.Property<bool>("Incapacitated")
                                 .HasColumnType("tinyint(1)");
 
-                            b1.Property<bool>("Intimidation")
+                            b1.Property<bool>("Invisible")
                                 .HasColumnType("tinyint(1)");
 
-                            b1.Property<bool>("Investigation")
+                            b1.Property<bool>("Paralyzed")
                                 .HasColumnType("tinyint(1)");
 
-                            b1.Property<bool>("Medicine")
+                            b1.Property<bool>("Petrified")
                                 .HasColumnType("tinyint(1)");
 
-                            b1.Property<bool>("Nature")
+                            b1.Property<bool>("Poisoned")
                                 .HasColumnType("tinyint(1)");
 
-                            b1.Property<bool>("Perception")
+                            b1.Property<bool>("Prone")
                                 .HasColumnType("tinyint(1)");
 
-                            b1.Property<bool>("Performance")
+                            b1.Property<bool>("Restrained")
                                 .HasColumnType("tinyint(1)");
 
-                            b1.Property<bool>("Persuasion")
+                            b1.Property<bool>("Stunned")
                                 .HasColumnType("tinyint(1)");
 
-                            b1.Property<bool>("Religion")
-                                .HasColumnType("tinyint(1)");
-
-                            b1.Property<bool>("SleightOfHand")
-                                .HasColumnType("tinyint(1)");
-
-                            b1.Property<bool>("Stealth")
-                                .HasColumnType("tinyint(1)");
-
-                            b1.Property<bool>("Survival")
+                            b1.Property<bool>("Unconscious")
                                 .HasColumnType("tinyint(1)");
 
                             b1.HasKey("CharacterId");
@@ -304,10 +472,269 @@ namespace Infrastructure.Migrations
                                 .HasForeignKey("CharacterId");
                         });
 
+                    b.OwnsOne("DnDSheetManager.Domain.ValueObjects.DamageResistances", "DamageResistances", b1 =>
+                        {
+                            b1.Property<int>("CharacterId")
+                                .HasColumnType("int");
+
+                            b1.Property<string>("Immunities")
+                                .IsRequired()
+                                .HasColumnType("longtext");
+
+                            b1.Property<string>("Resistances")
+                                .IsRequired()
+                                .HasColumnType("longtext");
+
+                            b1.Property<string>("Vulnerabilities")
+                                .IsRequired()
+                                .HasColumnType("longtext");
+
+                            b1.HasKey("CharacterId");
+
+                            b1.ToTable("Characters");
+
+                            b1.WithOwner()
+                                .HasForeignKey("CharacterId");
+                        });
+
+                    b.OwnsOne("DnDSheetManager.Domain.ValueObjects.SavingThrows", "SavingThrows", b1 =>
+                        {
+                            b1.Property<int>("CharacterId")
+                                .HasColumnType("int");
+
+                            b1.Property<bool>("CharismaProficiency")
+                                .HasColumnType("tinyint(1)");
+
+                            b1.Property<bool>("ConstitutionProficiency")
+                                .HasColumnType("tinyint(1)");
+
+                            b1.Property<bool>("DexterityProficiency")
+                                .HasColumnType("tinyint(1)");
+
+                            b1.Property<bool>("IntelligenceProficiency")
+                                .HasColumnType("tinyint(1)");
+
+                            b1.Property<bool>("StrengthProficiency")
+                                .HasColumnType("tinyint(1)");
+
+                            b1.Property<bool>("WisdomProficiency")
+                                .HasColumnType("tinyint(1)");
+
+                            b1.HasKey("CharacterId");
+
+                            b1.ToTable("Characters");
+
+                            b1.WithOwner()
+                                .HasForeignKey("CharacterId");
+                        });
+
+                    b.OwnsOne("DnDSheetManager.Domain.ValueObjects.Skills", "Skills", b1 =>
+                        {
+                            b1.Property<int>("CharacterId")
+                                .HasColumnType("int");
+
+                            b1.Property<bool>("Acrobatics")
+                                .HasColumnType("tinyint(1)");
+
+                            b1.Property<bool>("AcrobaticsExpertise")
+                                .HasColumnType("tinyint(1)");
+
+                            b1.Property<bool>("AnimalHandling")
+                                .HasColumnType("tinyint(1)");
+
+                            b1.Property<bool>("AnimalHandlingExpertise")
+                                .HasColumnType("tinyint(1)");
+
+                            b1.Property<bool>("Arcana")
+                                .HasColumnType("tinyint(1)");
+
+                            b1.Property<bool>("ArcanaExpertise")
+                                .HasColumnType("tinyint(1)");
+
+                            b1.Property<bool>("Athletics")
+                                .HasColumnType("tinyint(1)");
+
+                            b1.Property<bool>("AthleticsExpertise")
+                                .HasColumnType("tinyint(1)");
+
+                            b1.Property<bool>("Deception")
+                                .HasColumnType("tinyint(1)");
+
+                            b1.Property<bool>("DeceptionExpertise")
+                                .HasColumnType("tinyint(1)");
+
+                            b1.Property<bool>("History")
+                                .HasColumnType("tinyint(1)");
+
+                            b1.Property<bool>("HistoryExpertise")
+                                .HasColumnType("tinyint(1)");
+
+                            b1.Property<bool>("Insight")
+                                .HasColumnType("tinyint(1)");
+
+                            b1.Property<bool>("InsightExpertise")
+                                .HasColumnType("tinyint(1)");
+
+                            b1.Property<bool>("Intimidation")
+                                .HasColumnType("tinyint(1)");
+
+                            b1.Property<bool>("IntimidationExpertise")
+                                .HasColumnType("tinyint(1)");
+
+                            b1.Property<bool>("Investigation")
+                                .HasColumnType("tinyint(1)");
+
+                            b1.Property<bool>("InvestigationExpertise")
+                                .HasColumnType("tinyint(1)");
+
+                            b1.Property<bool>("Medicine")
+                                .HasColumnType("tinyint(1)");
+
+                            b1.Property<bool>("MedicineExpertise")
+                                .HasColumnType("tinyint(1)");
+
+                            b1.Property<bool>("Nature")
+                                .HasColumnType("tinyint(1)");
+
+                            b1.Property<bool>("NatureExpertise")
+                                .HasColumnType("tinyint(1)");
+
+                            b1.Property<bool>("Perception")
+                                .HasColumnType("tinyint(1)");
+
+                            b1.Property<bool>("PerceptionExpertise")
+                                .HasColumnType("tinyint(1)");
+
+                            b1.Property<bool>("Performance")
+                                .HasColumnType("tinyint(1)");
+
+                            b1.Property<bool>("PerformanceExpertise")
+                                .HasColumnType("tinyint(1)");
+
+                            b1.Property<bool>("Persuasion")
+                                .HasColumnType("tinyint(1)");
+
+                            b1.Property<bool>("PersuasionExpertise")
+                                .HasColumnType("tinyint(1)");
+
+                            b1.Property<bool>("Religion")
+                                .HasColumnType("tinyint(1)");
+
+                            b1.Property<bool>("ReligionExpertise")
+                                .HasColumnType("tinyint(1)");
+
+                            b1.Property<bool>("SleightOfHand")
+                                .HasColumnType("tinyint(1)");
+
+                            b1.Property<bool>("SleightOfHandExpertise")
+                                .HasColumnType("tinyint(1)");
+
+                            b1.Property<bool>("Stealth")
+                                .HasColumnType("tinyint(1)");
+
+                            b1.Property<bool>("StealthExpertise")
+                                .HasColumnType("tinyint(1)");
+
+                            b1.Property<bool>("Survival")
+                                .HasColumnType("tinyint(1)");
+
+                            b1.Property<bool>("SurvivalExpertise")
+                                .HasColumnType("tinyint(1)");
+
+                            b1.HasKey("CharacterId");
+
+                            b1.ToTable("Characters");
+
+                            b1.WithOwner()
+                                .HasForeignKey("CharacterId");
+                        });
+
+                    b.OwnsOne("DnDSheetManager.Domain.ValueObjects.SpellSlots", "SpellSlots", b1 =>
+                        {
+                            b1.Property<int>("CharacterId")
+                                .HasColumnType("int");
+
+                            b1.Property<int>("Level1Total")
+                                .HasColumnType("int");
+
+                            b1.Property<int>("Level1Used")
+                                .HasColumnType("int");
+
+                            b1.Property<int>("Level2Total")
+                                .HasColumnType("int");
+
+                            b1.Property<int>("Level2Used")
+                                .HasColumnType("int");
+
+                            b1.Property<int>("Level3Total")
+                                .HasColumnType("int");
+
+                            b1.Property<int>("Level3Used")
+                                .HasColumnType("int");
+
+                            b1.Property<int>("Level4Total")
+                                .HasColumnType("int");
+
+                            b1.Property<int>("Level4Used")
+                                .HasColumnType("int");
+
+                            b1.Property<int>("Level5Total")
+                                .HasColumnType("int");
+
+                            b1.Property<int>("Level5Used")
+                                .HasColumnType("int");
+
+                            b1.Property<int>("Level6Total")
+                                .HasColumnType("int");
+
+                            b1.Property<int>("Level6Used")
+                                .HasColumnType("int");
+
+                            b1.Property<int>("Level7Total")
+                                .HasColumnType("int");
+
+                            b1.Property<int>("Level7Used")
+                                .HasColumnType("int");
+
+                            b1.Property<int>("Level8Total")
+                                .HasColumnType("int");
+
+                            b1.Property<int>("Level8Used")
+                                .HasColumnType("int");
+
+                            b1.Property<int>("Level9Total")
+                                .HasColumnType("int");
+
+                            b1.Property<int>("Level9Used")
+                                .HasColumnType("int");
+
+                            b1.HasKey("CharacterId");
+
+                            b1.ToTable("Characters");
+
+                            b1.WithOwner()
+                                .HasForeignKey("CharacterId");
+                        });
+
+                    b.Navigation("AC")
+                        .IsRequired();
+
                     b.Navigation("Abilities")
                         .IsRequired();
 
+                    b.Navigation("Conditions")
+                        .IsRequired();
+
+                    b.Navigation("DamageResistances")
+                        .IsRequired();
+
+                    b.Navigation("SavingThrows")
+                        .IsRequired();
+
                     b.Navigation("Skills")
+                        .IsRequired();
+
+                    b.Navigation("SpellSlots")
                         .IsRequired();
 
                     b.Navigation("Wealth")
@@ -344,18 +771,57 @@ namespace Infrastructure.Migrations
                     b.Navigation("Character");
                 });
 
+            modelBuilder.Entity("DnDSheetManager.Domain.Entities.CharacterSpell", b =>
+                {
+                    b.HasOne("DnDSheetManager.Domain.Entities.Character", "Character")
+                        .WithMany("Spells")
+                        .HasForeignKey("CharacterId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("DnDSheetManager.Domain.Entities.Spell", "Spell")
+                        .WithMany("CharacterSpells")
+                        .HasForeignKey("SpellId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Character");
+
+                    b.Navigation("Spell");
+                });
+
+            modelBuilder.Entity("DnDSheetManager.Domain.Entities.Feature", b =>
+                {
+                    b.HasOne("DnDSheetManager.Domain.Entities.Character", "Character")
+                        .WithMany("Features")
+                        .HasForeignKey("CharacterId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Character");
+                });
+
             modelBuilder.Entity("DnDSheetManager.Domain.Entities.Character", b =>
                 {
                     b.Navigation("Attacks");
 
                     b.Navigation("ClassResources");
 
+                    b.Navigation("Features");
+
                     b.Navigation("Inventory");
+
+                    b.Navigation("Spells");
                 });
 
             modelBuilder.Entity("DnDSheetManager.Domain.Entities.Item", b =>
                 {
                     b.Navigation("CharacterItems");
+                });
+
+            modelBuilder.Entity("DnDSheetManager.Domain.Entities.Spell", b =>
+                {
+                    b.Navigation("CharacterSpells");
                 });
 #pragma warning restore 612, 618
         }

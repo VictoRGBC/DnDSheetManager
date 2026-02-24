@@ -4,6 +4,8 @@ using Scalar.AspNetCore;
 using DnDSheetManager.Domain.Interfaces;
 using DnDSheetManager.Infrastructure.Repositories;
 using DnDSheetManager.Application.Services;
+using DnDSheetManager.Domain.Services;
+using DnDSheetManager.API.Middlewares;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -17,6 +19,17 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 builder.Services.AddScoped<ICharacterRepository, CharacterRepository>();
 builder.Services.AddScoped<ICharacterService, CharacterService>();
 
+builder.Services.AddScoped<IItemRepository, ItemRepository>();
+builder.Services.AddScoped<IItemService, ItemService>();
+
+builder.Services.AddScoped<ISpellRepository, SpellRepository>();
+builder.Services.AddScoped<ISpellService, SpellService>();
+
+builder.Services.AddScoped<ICharacterRepository, CharacterRepository>();
+builder.Services.AddScoped<ICharacterService, CharacterService>();
+
+builder.Services.AddScoped<ICombatCalculator, CombatCalculator>();
+
 builder.Services.AddControllers()
     .AddJsonOptions(options =>
     {
@@ -24,18 +37,16 @@ builder.Services.AddControllers()
         options.JsonSerializerOptions.DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull;
     });
 
-builder.Services.AddOpenApi(options =>
-{
-    options.AddSchemaTransformer((schema, context, cancellationToken) =>
-    {
-        // Configuração adicional para lidar com schemas circulares
-        return Task.CompletedTask;
-    });
-});
+builder.Services.AddOpenApi();
+
+builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
+builder.Services.AddProblemDetails();
 
 var app = builder.Build();
 
 app.MapOpenApi();
+
+app.UseExceptionHandler();
 
 app.MapScalarApiReference(options =>
 {

@@ -15,6 +15,16 @@ namespace DnDSheetManager.Application.Services
         Task<bool> HealAsync(int id, int amount);
         Task<bool> AddAttackAsync(int characterId, Attack attack);
         Task<bool> AddResourceAsync(int characterId, CharacterResource resource);
+        Task<bool> ConsumeResourceAsync(int characterId, int resourceId, int amount);
+        Task<bool> RestoreResourceAsync(int characterId, int resourceId, int amount);
+        Task<bool> LearnSpellAsync(int characterId, int spellId, bool isPrepared);
+        Task<bool> UseSpellSlotAsync(int characterId, int level);
+        Task<bool> RestoreSpellSlotAsync(int characterId, int level);
+        Task<bool> LongRestAsync(int characterId);
+        Task<bool> UseHitDiceAsync(int characterId, int diceCount);
+        Task<bool> AddFeatureAsync(int characterId, Feature feature);
+        Task<bool> UseFeatureAsync(int characterId, int featureId);
+        Task<bool> ShortRestAsync(int characterId);
     }
 
     public class CharacterService : ICharacterService
@@ -53,11 +63,9 @@ namespace DnDSheetManager.Application.Services
 
         public async Task<bool> AddItemToInventoryAsync(int characterId, int itemId, int quantity)
         {
-            // Busca o personagem com o inventário carregado
-            var character = await _repository.GetCharacterWithInventoryAsync(characterId);
+            var character = await _repository.GetCharacterWithInventoryTrackingAsync(characterId);
             if (character == null) return false;
 
-            // Verifica se ele já possui o item na bolsa
             var existingInventoryItem = character.Inventory.FirstOrDefault(i => i.ItemId == itemId);
 
             if (existingInventoryItem != null)
@@ -66,7 +74,6 @@ namespace DnDSheetManager.Application.Services
             }
             else
             {
-                // Adiciona um item novo na lista
                 character.Inventory.Add(new CharacterItem
                 {
                     CharacterId = characterId,
@@ -86,7 +93,7 @@ namespace DnDSheetManager.Application.Services
 
         public async Task<bool> TakeDamageAsync(int id, int amount)
         {
-            var character = await _repository.GetByIdAsync(id);
+            var character = await _repository.GetByIdWithTrackingAsync(id);
             if (character == null) return false;
 
             character.TakeDamage(amount);
@@ -97,7 +104,7 @@ namespace DnDSheetManager.Application.Services
 
         public async Task<bool> HealAsync(int id, int amount)
         {
-            var character = await _repository.GetByIdAsync(id);
+            var character = await _repository.GetByIdWithTrackingAsync(id);
             if (character == null) return false;
 
             character.Heal(amount);
@@ -108,7 +115,7 @@ namespace DnDSheetManager.Application.Services
 
         public async Task<bool> AddAttackAsync(int characterId, Attack attack)
         {
-            var character = await _repository.GetCharacterWithInventoryAsync(characterId);
+            var character = await _repository.GetCharacterWithInventoryTrackingAsync(characterId);
             if (character == null) return false;
 
             attack.CharacterId = characterId;
@@ -120,11 +127,154 @@ namespace DnDSheetManager.Application.Services
 
         public async Task<bool> AddResourceAsync(int characterId, CharacterResource resource)
         {
-            var character = await _repository.GetCharacterWithInventoryAsync(characterId);
+            var character = await _repository.GetCharacterWithInventoryTrackingAsync(characterId);
             if (character == null) return false;
 
             resource.CharacterId = characterId;
             character.ClassResources.Add(resource);
+
+            await _repository.UpdateAsync(character);
+            return true;
+        }
+
+        public async Task<bool> ConsumeResourceAsync(int characterId, int resourceId, int amount)
+        {
+            var character = await _repository.GetCharacterWithInventoryTrackingAsync(characterId);
+            if (character == null) return false;
+
+            var resource = character.ClassResources.FirstOrDefault(r => r.Id == resourceId);
+            if (resource == null) return false;
+
+            resource.Consume(amount);
+
+            await _repository.UpdateAsync(character);
+            return true;
+        }
+
+        public async Task<bool> RestoreResourceAsync(int characterId, int resourceId, int amount)
+        {
+            var character = await _repository.GetCharacterWithInventoryTrackingAsync(characterId);
+            if (character == null) return false;
+
+            var resource = character.ClassResources.FirstOrDefault(r => r.Id == resourceId);
+            if (resource == null) return false;
+
+            resource.Restore(amount);
+
+            await _repository.UpdateAsync(character);
+            return true;
+        }
+
+        public async Task<bool> LearnSpellAsync(int characterId, int spellId, bool isPrepared)
+        {
+            var character = await _repository.GetCharacterWithInventoryTrackingAsync(characterId);
+            if (character == null) return false;
+
+            var existingSpell = character.Spells.FirstOrDefault(s => s.SpellId == spellId);
+
+            if (existingSpell != null)
+            {
+                existingSpell.IsPrepared = isPrepared;
+            }
+            else
+            {
+                character.Spells.Add(new CharacterSpell
+                {
+                    CharacterId = characterId,
+                    SpellId = spellId,
+                    IsPrepared = isPrepared
+                });
+            }
+
+            await _repository.UpdateAsync(character);
+            return true;
+        }
+
+        public async Task<bool> UseSpellSlotAsync(int characterId, int level)
+        {
+            var character = await _repository.GetByIdWithTrackingAsync(characterId);
+            if (character == null) return false;
+
+            bool success = character.SpellSlots.UseSlot(level);
+            if (!success) return false;
+
+            await _repository.UpdateAsync(character);
+            return true;
+        }
+
+        public async Task<bool> RestoreSpellSlotAsync(int characterId, int level)
+        {
+            var character = await _repository.GetByIdWithTrackingAsync(characterId);
+            if (character == null) return false;
+
+            character.SpellSlots.RestoreSlot(level);
+            await _repository.UpdateAsync(character);
+            return true;
+        }
+
+        public async Task<bool> LongRestAsync(int characterId)
+        {
+            var character = await _repository.GetCharacterWithInventoryTrackingAsync(characterId);
+            if (character == null) return false;
+
+            character.LongRest();
+
+            foreach (var feature in character.Features)
+            {
+                feature.RestoreUses();
+            }
+
+            await _repository.UpdateAsync(character);
+            return true;
+        }
+
+        public async Task<bool> UseHitDiceAsync(int characterId, int diceCount)
+        {
+            var character = await _repository.GetByIdWithTrackingAsync(characterId);
+            if (character == null) return false;
+
+            if (character.AvailableHitDice < diceCount) return false;
+
+            character.UseHitDice(diceCount);
+            await _repository.UpdateAsync(character);
+            return true;
+        }
+
+        public async Task<bool> AddFeatureAsync(int characterId, Feature feature)
+        {
+            var character = await _repository.GetCharacterWithInventoryTrackingAsync(characterId);
+            if (character == null) return false;
+
+            feature.CharacterId = characterId;
+            character.Features.Add(feature);
+            await _repository.UpdateAsync(character);
+            return true;
+        }
+
+        public async Task<bool> UseFeatureAsync(int characterId, int featureId)
+        {
+            var character = await _repository.GetCharacterWithInventoryTrackingAsync(characterId);
+            if (character == null) return false;
+
+            var feature = character.Features.FirstOrDefault(f => f.Id == featureId);
+            if (feature == null) return false;
+
+            feature.Use();
+            await _repository.UpdateAsync(character);
+            return true;
+        }
+
+        public async Task<bool> ShortRestAsync(int characterId)
+        {
+            var character = await _repository.GetCharacterWithInventoryTrackingAsync(characterId);
+            if (character == null) return false;
+
+            character.ShortRest();
+
+            foreach (var feature in character.Features.Where(f => f.RestType == "Short"))
+            {
+                feature.RestoreUses();
+            }
 
             await _repository.UpdateAsync(character);
             return true;

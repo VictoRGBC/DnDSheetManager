@@ -9,6 +9,7 @@
         public int ValueInGold { get; set; } // Valor em peças de ouro
 
         // Propriedade de navegação para a tabela intermediária
+        [System.Text.Json.Serialization.JsonIgnore]
         public ICollection<CharacterItem> CharacterItems { get; set; } = new List<CharacterItem>();
     }
 }

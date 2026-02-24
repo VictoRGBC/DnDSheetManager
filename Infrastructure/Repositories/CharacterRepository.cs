@@ -14,7 +14,17 @@ namespace DnDSheetManager.Infrastructure.Repositories
             _context = context;
         }
 
-        public async Task<Character?> GetByIdAsync(int id) => await _context.Characters.FindAsync(id);
+        public async Task<Character?> GetByIdAsync(int id)
+        {
+            return await _context.Characters
+                .AsNoTracking()
+                .FirstOrDefaultAsync(c => c.Id == id);
+        }
+
+        public async Task<Character?> GetByIdWithTrackingAsync(int id)
+        {
+            return await _context.Characters.FindAsync(id);
+        }
 
         public async Task<Character> AddAsync(Character character)
         {
@@ -42,11 +52,23 @@ namespace DnDSheetManager.Infrastructure.Repositories
         public async Task<Character?> GetCharacterWithInventoryAsync(int id)
         {
             return await _context.Characters
-                .Include(c => c.Inventory)
-                    .ThenInclude(i => i.Item)
+                .AsNoTracking()
+                .Include(c => c.Inventory).ThenInclude(i => i.Item)
                 .Include(c => c.Attacks)
                 .Include(c => c.ClassResources)
+                .Include(c => c.Spells).ThenInclude(cs => cs.Spell)
                 .FirstOrDefaultAsync(c => c.Id == id);
         }
+
+        public async Task<Character?> GetCharacterWithInventoryTrackingAsync(int id)
+        {
+            return await _context.Characters
+                .Include(c => c.Inventory).ThenInclude(i => i.Item)
+                .Include(c => c.Attacks)
+                .Include(c => c.ClassResources)
+                .Include(c => c.Spells).ThenInclude(cs => cs.Spell)
+                .FirstOrDefaultAsync(c => c.Id == id);
+        }
+
     }
 }
