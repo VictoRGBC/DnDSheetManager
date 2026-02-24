@@ -13,6 +13,8 @@ namespace DnDSheetManager.Application.Services
         Task<Character?> GetCharacterWithInventoryAsync(int id);
         Task<bool> TakeDamageAsync(int id, int amount);
         Task<bool> HealAsync(int id, int amount);
+        Task<bool> AddAttackAsync(int characterId, Attack attack);
+        Task<bool> AddResourceAsync(int characterId, CharacterResource resource);
     }
 
     public class CharacterService : ICharacterService
@@ -99,6 +101,30 @@ namespace DnDSheetManager.Application.Services
             if (character == null) return false;
 
             character.Heal(amount);
+
+            await _repository.UpdateAsync(character);
+            return true;
+        }
+
+        public async Task<bool> AddAttackAsync(int characterId, Attack attack)
+        {
+            var character = await _repository.GetCharacterWithInventoryAsync(characterId);
+            if (character == null) return false;
+
+            attack.CharacterId = characterId;
+            character.Attacks.Add(attack);
+
+            await _repository.UpdateAsync(character);
+            return true;
+        }
+
+        public async Task<bool> AddResourceAsync(int characterId, CharacterResource resource)
+        {
+            var character = await _repository.GetCharacterWithInventoryAsync(characterId);
+            if (character == null) return false;
+
+            resource.CharacterId = characterId;
+            character.ClassResources.Add(resource);
 
             await _repository.UpdateAsync(character);
             return true;

@@ -43,7 +43,9 @@ namespace DnDSheetManager.Infrastructure.Repositories
         {
             return await _context.Characters
                 .Include(c => c.Inventory)
-                .ThenInclude(i => i.Item)
+                    .ThenInclude(i => i.Item)
+                .Include(c => c.Attacks)
+                .Include(c => c.ClassResources)
                 .FirstOrDefaultAsync(c => c.Id == id);
         }
     }

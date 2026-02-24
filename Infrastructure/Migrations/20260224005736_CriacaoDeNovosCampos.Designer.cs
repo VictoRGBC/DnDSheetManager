@@ -3,6 +3,7 @@ using DnDSheetManager.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -10,9 +11,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Infrastructure.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260224005736_CriacaoDeNovosCampos")]
+    partial class CriacaoDeNovosCampos
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -20,43 +23,6 @@ namespace Infrastructure.Migrations
                 .HasAnnotation("Relational:MaxIdentifierLength", 64);
 
             MySqlModelBuilderExtensions.AutoIncrementColumns(modelBuilder);
-
-            modelBuilder.Entity("DnDSheetManager.Domain.Entities.Attack", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<int>("AttackBonus")
-                        .HasColumnType("int");
-
-                    b.Property<int>("CharacterId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("Damage")
-                        .IsRequired()
-                        .HasColumnType("longtext");
-
-                    b.Property<string>("DamageType")
-                        .IsRequired()
-                        .HasColumnType("longtext");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasColumnType("longtext");
-
-                    b.Property<string>("Properties")
-                        .IsRequired()
-                        .HasColumnType("longtext");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("CharacterId");
-
-                    b.ToTable("Attacks");
-                });
 
             modelBuilder.Entity("DnDSheetManager.Domain.Entities.Character", b =>
                 {
@@ -110,34 +76,6 @@ namespace Infrastructure.Migrations
                     b.ToTable("CharacterItems");
                 });
 
-            modelBuilder.Entity("DnDSheetManager.Domain.Entities.CharacterResource", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<int>("CharacterId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("CurrentValue")
-                        .HasColumnType("int");
-
-                    b.Property<int>("MaxValue")
-                        .HasColumnType("int");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasColumnType("longtext");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("CharacterId");
-
-                    b.ToTable("CharacterResources");
-                });
-
             modelBuilder.Entity("DnDSheetManager.Domain.Entities.Item", b =>
                 {
                     b.Property<int>("Id")
@@ -163,17 +101,6 @@ namespace Infrastructure.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Items");
-                });
-
-            modelBuilder.Entity("DnDSheetManager.Domain.Entities.Attack", b =>
-                {
-                    b.HasOne("DnDSheetManager.Domain.Entities.Character", "Character")
-                        .WithMany("Attacks")
-                        .HasForeignKey("CharacterId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Character");
                 });
 
             modelBuilder.Entity("DnDSheetManager.Domain.Entities.Character", b =>
@@ -333,23 +260,8 @@ namespace Infrastructure.Migrations
                     b.Navigation("Item");
                 });
 
-            modelBuilder.Entity("DnDSheetManager.Domain.Entities.CharacterResource", b =>
-                {
-                    b.HasOne("DnDSheetManager.Domain.Entities.Character", "Character")
-                        .WithMany("ClassResources")
-                        .HasForeignKey("CharacterId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Character");
-                });
-
             modelBuilder.Entity("DnDSheetManager.Domain.Entities.Character", b =>
                 {
-                    b.Navigation("Attacks");
-
-                    b.Navigation("ClassResources");
-
                     b.Navigation("Inventory");
                 });
 

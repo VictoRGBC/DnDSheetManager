@@ -16,59 +16,25 @@ namespace DnDSheetManager.API.Controllers
             _characterService = characterService;
         }
 
-        // Post: api/characters (Cria uma nova ficha)
+        // POST: api/characters
         [HttpPost]
-        public async Task<ActionResult<Character>> CreateCharacter(Character character)
+        public async Task<ActionResult<CharacterResponseDto>> CreateCharacter(Character character)
         {
             var createdCharacter = await _characterService.CreateCharacterAsync(character);
-            return CreatedAtAction(nameof(GetCharacter), new { id = createdCharacter.Id }, createdCharacter);
+
+            var responseDto = MapToResponseDto(createdCharacter);
+
+            return CreatedAtAction(nameof(GetCharacter), new { id = createdCharacter.Id }, responseDto);
         }
 
         // GET: api/characters/{id}
         [HttpGet("{id}")]
         public async Task<ActionResult<CharacterResponseDto>> GetCharacter(int id)
         {
-            // Busca o personagem com os itens incluídos
             var character = await _characterService.GetCharacterWithInventoryAsync(id);
-
             if (character == null) return NotFound("Personagem não encontrado.");
 
-            // Mapeamento manual de Entidade para DTO
-            var responseDto = new CharacterResponseDto
-            {
-                Id = character.Id,
-                Name = character.Name,
-                Race = character.Race,
-                ClassName = character.ClassName,
-                Level = character.Level,
-                CurrentHitPoints = character.CurrentHitPoints,
-                MaxHitPoints = character.MaxHitPoints,
-
-                // Atributos Base
-                Strength = character.Strength,
-                Dexterity = character.Dexterity,
-                Constitution = character.Constitution,
-                Intelligence = character.Intelligence,
-                Wisdom = character.Wisdom,
-                Charisma = character.Charisma,
-
-                // Aplicando a regra de negócio do Domínio!
-                StrengthModifier = character.GetModifier(character.Strength),
-                DexterityModifier = character.GetModifier(character.Dexterity),
-                ConstitutionModifier = character.GetModifier(character.Constitution),
-                IntelligenceModifier = character.GetModifier(character.Intelligence),
-                WisdomModifier = character.GetModifier(character.Wisdom),
-                CharismaModifier = character.GetModifier(character.Charisma),
-
-                // Mapeia o inventário
-                Inventory = character.Inventory.Select(i => new InventoryItemDto
-                {
-                    ItemId = i.ItemId,
-                    Name = i.Item?.Name ?? "Item Desconhecido",
-                    Quantity = i.Quantity,
-                    TotalWeight = (i.Item?.Weight ?? 0) * i.Quantity
-                }).ToList()
-            };
+            var responseDto = MapToResponseDto(character);
 
             return Ok(responseDto);
         }
@@ -127,6 +93,108 @@ namespace DnDSheetManager.API.Controllers
             if (!success) return NotFound("Personagem não encontrado.");
 
             return Ok($"Cura de {dto.Amount} aplicada com sucesso.");
+        }
+
+        // POST: api/characters/{id}/attacks
+        [HttpPost("{id}/attacks")]
+        public async Task<IActionResult> AddAttack(int id, [FromBody] CreateAttackDto dto)
+        {
+            var attack = new Attack
+            {
+                Name = dto.Name,
+                AttackBonus = dto.AttackBonus,
+                Damage = dto.Damage,
+                DamageType = dto.DamageType,
+                Properties = dto.Properties
+            };
+
+            var success = await _characterService.AddAttackAsync(id, attack);
+            if (!success) return NotFound("Personagem não encontrado.");
+
+            return Ok("Ataque adicionado com sucesso!");
+        }
+
+        // POST: api/characters/{id}/resources
+        [HttpPost("{id}/resources")]
+        public async Task<IActionResult> AddResource(int id, [FromBody] CreateResourceDto dto)
+        {
+            var resource = new CharacterResource
+            {
+                Name = dto.Name,
+                MaxValue = dto.MaxValue,
+                CurrentValue = dto.CurrentValue
+            };
+
+            var success = await _characterService.AddResourceAsync(id, resource);
+            if (!success) return NotFound("Personagem não encontrado.");
+
+            return Ok("Recurso adicionado com sucesso!");
+        }
+
+        // Método privado para evitar repetição de código
+        private CharacterResponseDto MapToResponseDto(Character character)
+        {
+            return new CharacterResponseDto
+            {
+                Id = character.Id,
+                Name = character.Name,
+                Species = character.Species,
+                ClassName = character.ClassName,
+                Level = character.Level,
+                CurrentHitPoints = character.CurrentHitPoints,
+                MaxHitPoints = character.MaxHitPoints,
+
+                Abilities = new AbilityScoresDto
+                {
+                    Strength = character.Abilities.Strength,
+                    StrengthModifier = character.GetModifier(character.Abilities.Strength),
+                    Dexterity = character.Abilities.Dexterity,
+                    DexterityModifier = character.GetModifier(character.Abilities.Dexterity),
+                    Constitution = character.Abilities.Constitution,
+                    ConstitutionModifier = character.GetModifier(character.Abilities.Constitution),
+                    Intelligence = character.Abilities.Intelligence,
+                    IntelligenceModifier = character.GetModifier(character.Abilities.Intelligence),
+                    Wisdom = character.Abilities.Wisdom,
+                    WisdomModifier = character.GetModifier(character.Abilities.Wisdom),
+                    Charisma = character.Abilities.Charisma,
+                    CharismaModifier = character.GetModifier(character.Abilities.Charisma)
+                },
+
+                Wealth = new CoinsDto
+                {
+                    CopperPieces = character.Wealth.CopperPieces,
+                    SilverPieces = character.Wealth.SilverPieces,
+                    ElectrumPieces = character.Wealth.ElectrumPieces,
+                    GoldPieces = character.Wealth.GoldPieces,
+                    PlatinumPieces = character.Wealth.PlatinumPieces
+                },
+
+                Inventory = character.Inventory?.Select(i => new InventoryItemDto
+                {
+                    ItemId = i.ItemId,
+                    Name = i.Item?.Name ?? "Item Desconhecido",
+                    Quantity = i.Quantity,
+                    TotalWeight = (i.Item?.Weight ?? 0) * i.Quantity
+                }).ToList() ?? new List<InventoryItemDto>(),
+
+                Attacks = character.Attacks?.Select(a => new AttackResponseDto
+                {
+                    Id = a.Id,
+                    Name = a.Name,
+                    AttackBonus = a.AttackBonus,
+                    Damage = a.Damage,
+                    DamageType = a.DamageType,
+                    Properties = a.Properties
+                }).ToList() ?? new List<AttackResponseDto>(),
+
+                ClassResources = character.ClassResources?.Select(r => new ResourceResponseDto
+                {
+                    Id = r.Id,
+                    Name = r.Name,
+                    MaxValue = r.MaxValue,
+                    CurrentValue = r.CurrentValue
+                }).ToList() ?? new List<ResourceResponseDto>()
+            };
         }
     }
 }
