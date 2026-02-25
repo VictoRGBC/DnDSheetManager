@@ -6,6 +6,10 @@ using DnDSheetManager.Infrastructure.Repositories;
 using DnDSheetManager.Application.Services;
 using DnDSheetManager.Domain.Services;
 using DnDSheetManager.API.Middlewares;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
+using DnDSheetManager.Infrastructure.Services;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -15,19 +19,40 @@ var connectionString = builder.Configuration.GetConnectionString("DefaultConnect
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString)));
 
+// Configuração JWT
+var jwtSecretKey = builder.Configuration["Jwt:SecretKey"] ?? throw new InvalidOperationException("JWT SecretKey não configurada");
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(options =>
+    {
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuerSigningKey = true,
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSecretKey)),
+            ValidateIssuer = true,
+            ValidIssuer = builder.Configuration["Jwt:Issuer"],
+            ValidateAudience = true,
+            ValidAudience = builder.Configuration["Jwt:Audience"],
+            ValidateLifetime = true,
+            ClockSkew = TimeSpan.Zero
+        };
+    });
 
+builder.Services.AddAuthorization();
+
+// Repositórios
+builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<ICharacterRepository, CharacterRepository>();
-builder.Services.AddScoped<ICharacterService, CharacterService>();
-
 builder.Services.AddScoped<IItemRepository, ItemRepository>();
-builder.Services.AddScoped<IItemService, ItemService>();
-
 builder.Services.AddScoped<ISpellRepository, SpellRepository>();
+
+// Serviços
+builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddScoped<ICharacterService, CharacterService>();
+builder.Services.AddScoped<IItemService, ItemService>();
 builder.Services.AddScoped<ISpellService, SpellService>();
 
-builder.Services.AddScoped<ICharacterRepository, CharacterRepository>();
-builder.Services.AddScoped<ICharacterService, CharacterService>();
-
+// Serviços de infraestrutura
+builder.Services.AddScoped<ITokenService, TokenService>();
 builder.Services.AddScoped<ICombatCalculator, CombatCalculator>();
 
 builder.Services.AddControllers()
@@ -55,7 +80,10 @@ app.MapScalarApiReference(options =>
 });
 
 app.UseHttpsRedirection();
+
+app.UseAuthentication(); // IMPORTANTE: Antes do UseAuthorization
 app.UseAuthorization();
+
 app.MapControllers();
 
 app.Run();

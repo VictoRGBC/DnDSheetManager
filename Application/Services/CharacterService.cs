@@ -6,6 +6,7 @@ namespace DnDSheetManager.Application.Services
     public interface ICharacterService
     {
         Task<Character?> GetCharacterAsync(int id);
+        Task<IEnumerable<Character>> GetCharactersByUserIdAsync(int userId);
         Task<Character> CreateCharacterAsync(Character character);
         Task<bool> UpdateCharacterAsync(int id, Character character);
         Task<bool> DeleteCharacterAsync(int id);
@@ -37,6 +38,9 @@ namespace DnDSheetManager.Application.Services
         }
 
         public async Task<Character?> GetCharacterAsync(int id) => await _repository.GetByIdAsync(id);
+
+        public async Task<IEnumerable<Character>> GetCharactersByUserIdAsync(int userId) 
+            => await _repository.GetByUserIdAsync(userId);
 
         public async Task<Character> CreateCharacterAsync(Character character)
         {

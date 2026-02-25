@@ -7,6 +7,7 @@ namespace DnDSheetManager.Infrastructure.Data
     {
         public AppDbContext(DbContextOptions<AppDbContext> options) : base(options) { }
 
+        public DbSet<User> Users { get; set; }
         public DbSet<Character> Characters { get; set; }
         public DbSet<Item> Items { get; set; }
         public DbSet<CharacterItem> CharacterItems { get; set; }
@@ -88,6 +89,22 @@ namespace DnDSheetManager.Infrastructure.Data
                 .WithOne(f => f.Character)
                 .HasForeignKey(f => f.CharacterId)
                 .OnDelete(DeleteBehavior.Cascade);
+
+            // Relacionamento User -> Characters
+            modelBuilder.Entity<User>()
+                .HasMany(u => u.Characters)
+                .WithOne(c => c.User)
+                .HasForeignKey(c => c.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // Índices únicos para User
+            modelBuilder.Entity<User>()
+                .HasIndex(u => u.Email)
+                .IsUnique();
+
+            modelBuilder.Entity<User>()
+                .HasIndex(u => u.Username)
+                .IsUnique();
         }
     }
 }

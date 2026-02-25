@@ -1,9 +1,18 @@
 ﻿using DnDSheetManager.Domain.ValueObjects;
+using System.Text.Json.Serialization;
+
 namespace DnDSheetManager.Domain.Entities
 {
     public class Character
     {
         public int Id { get; set; }
+
+        // Relacionamento com User
+        public int UserId { get; set; }
+
+        [JsonIgnore]
+        public User? User { get; set; }
+
         public string Name { get; set; } = string.Empty;
         public string Species { get; set; } = string.Empty;
         public string ClassName { get; set; } = string.Empty;

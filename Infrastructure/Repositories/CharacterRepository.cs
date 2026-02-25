@@ -21,6 +21,14 @@ namespace DnDSheetManager.Infrastructure.Repositories
                 .FirstOrDefaultAsync(c => c.Id == id);
         }
 
+        public async Task<IEnumerable<Character>> GetByUserIdAsync(int userId)
+        {
+            return await _context.Characters
+                .Where(c => c.UserId == userId)
+                .AsNoTracking()
+                .ToListAsync();
+        }
+
         public async Task<Character?> GetByIdWithTrackingAsync(int id)
         {
             return await _context.Characters.FindAsync(id);

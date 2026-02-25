@@ -3,30 +3,79 @@ using DnDSheetManager.Application.Services;
 using DnDSheetManager.Domain.Entities;
 using Microsoft.AspNetCore.Mvc;
 using DnDSheetManager.Domain.Services;
+using Microsoft.AspNetCore.Authorization;
+using System.Security.Claims;
 
 namespace DnDSheetManager.API.Controllers
 {
+    [Authorize]
     [Route("api/[controller]")]
     [ApiController]
     public class CharactersController : ControllerBase
     {
         private readonly ICharacterService _characterService;
         private readonly ICombatCalculator _combatCalculator;
+
         public CharactersController(ICharacterService characterService, ICombatCalculator combatCalculator)
         {
             _characterService = characterService;
             _combatCalculator = combatCalculator;
         }
 
+        // Método helper para pegar UserId do token
+        private int GetAuthenticatedUserId()
+        {
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            return int.Parse(userIdClaim ?? "0");
+        }
+
+        // GET: api/characters (listar APENAS os do usuário autenticado)
+        [HttpGet]
+        public async Task<ActionResult<IEnumerable<CharacterResponseDto>>> GetAllCharacters()
+        {
+            var userId = GetAuthenticatedUserId();
+            var characters = await _characterService.GetCharactersByUserIdAsync(userId);
+
+            var responseDtos = characters.Select(MapToResponseDto);
+            return Ok(responseDtos);
+        }
+
         // POST: api/characters
         [HttpPost]
-        public async Task<ActionResult<CharacterResponseDto>> CreateCharacter(Character character)
+        public async Task<ActionResult<CharacterResponseDto>> CreateCharacter(CreateCharacterDto dto)
         {
+            var userId = GetAuthenticatedUserId();
+
+            var character = MapCreateDtoToCharacter(dto);
+            character.UserId = userId;
+
             var createdCharacter = await _characterService.CreateCharacterAsync(character);
 
             var responseDto = MapToResponseDto(createdCharacter);
 
             return CreatedAtAction(nameof(GetCharacter), new { id = createdCharacter.Id }, responseDto);
+        }
+
+        private Character MapCreateDtoToCharacter(CreateCharacterDto dto)
+        {
+            return new Character
+            {
+                Name = dto.Name,
+                Species = dto.Species,
+                ClassName = dto.ClassName,
+                Level = dto.Level,
+                MaxHitPoints = dto.MaxHitPoints,
+                CurrentHitPoints = dto.CurrentHitPoints,
+                Abilities = new Domain.ValueObjects.AbilityScores
+                {
+                    Strength = dto.Abilities.Strength,
+                    Dexterity = dto.Abilities.Dexterity,
+                    Constitution = dto.Abilities.Constitution,
+                    Intelligence = dto.Abilities.Intelligence,
+                    Wisdom = dto.Abilities.Wisdom,
+                    Charisma = dto.Abilities.Charisma
+                }
+            };
         }
 
         // GET: api/characters/{id}
