@@ -10,7 +10,7 @@
 
 ## 📖 Overview
 
-Enterprise-level RESTful API for managing **Dungeons & Dragons 5.5e**
+RESTful API for managing **Dungeons & Dragons 5.5e**
 character sheets.
 
 Built with modern backend architecture principles, the project
