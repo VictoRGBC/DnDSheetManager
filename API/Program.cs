@@ -39,6 +39,18 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 
 builder.Services.AddAuthorization();
 
+// Configurar CORS
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowFrontend", policy =>
+    {
+        policy.WithOrigins("http://localhost:5029", "http://127.0.0.1:5029", "https://localhost:7039")
+              .AllowAnyHeader()
+              .AllowAnyMethod()
+              .AllowCredentials();
+    });
+});
+
 // Repositórios
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<ICharacterRepository, CharacterRepository>();
@@ -79,7 +91,10 @@ app.MapScalarApiReference(options =>
     options.Theme = ScalarTheme.BluePlanet;
 });
 
-app.UseHttpsRedirection();
+// UseHttpsRedirection comentado em desenvolvimento para evitar problemas com CORS
+// app.UseHttpsRedirection();
+
+app.UseCors("AllowFrontend"); // IMPORTANTE: Antes de Authentication e Authorization
 
 app.UseAuthentication(); // IMPORTANTE: Antes do UseAuthorization
 app.UseAuthorization();
